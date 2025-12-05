@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Просмотр: ' + ${book.title}">Просмотр</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h1 th:text="${book.title}">Title</h1>
+    <div class="book-view">
+        <p><strong>📚 Автор:</strong> <span th:text="${book.author}">Author</span></p>
+        <p th:if="${book.genre}"><strong>📑 Жанр:</strong> <span th:text="${book.genre}">Genre</span></p>
+        <p th:if="${book.year}"><strong>📅 Год издания:</strong> <span th:text="${book.year}">Year</span></p>
+        <p><strong>📖 Описание:</strong></p>
+        <p th:text="${book.description ?: 'Описание отсутствует'}">Description</p>
+    </div>
+    <div style="text-align: center; margin-top: 30px;">
+        <a class="btn" th:href="@{/books}">← Назад к списку</a>
+        <a class="btn" th:href="@{'/books/' + ${book.id} + '/edit'}" style="margin-left: 15px;">✏️ Редактировать</a>
+    </div>
+</div>
+</body>
+</html>
+

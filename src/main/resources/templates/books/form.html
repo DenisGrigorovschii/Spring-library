@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${book.id} != null ? 'Редактировать' : 'Добавить'">Форма</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h1 th:text="${book.id} != null ? 'Редактировать книгу' : 'Добавить книгу'">Форма</h1>
+    <div th:if="${error}" class="error" th:text="${error}"></div>
+    <form th:action="@{/books}" th:object="${book}" method="post">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+        <input type="hidden" th:field="*{id}">
+        <div>
+            <label>Название</label>
+            <input type="text" th:field="*{title}" required>
+        </div>
+        <div>
+            <label>Автор</label>
+            <input type="text" th:field="*{author}" required>
+        </div>
+        <div>
+            <label>Жанр</label>
+            <input type="text" th:field="*{genre}" placeholder="Например: Фантастика, Роман, Детектив">
+        </div>
+        <div>
+            <label>Год издания</label>
+            <input type="number" th:field="*{year}" min="1000" max="2100" placeholder="Например: 2023">
+        </div>
+        <div>
+            <label>Описание</label>
+            <textarea th:field="*{description}"></textarea>
+        </div>
+        <div class="btn-group">
+            <button type="submit">💾 Сохранить</button>
+            <a th:href="@{/books}">❌ Отмена</a>
+        </div>
+    </form>
+</div>
+</body>
+</html>
+
