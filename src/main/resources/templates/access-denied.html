@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Доступ запрещён — Онлайн библиотека</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="login-container">
+    <h2>Доступ запрещён</h2>
+    <p style="text-align: center; color: #666; margin: 20px 0;">
+        У вашей роли недостаточно прав для этого действия.
+    </p>
+    <p style="text-align: center; color: #666; margin: 20px 0;" th:if="${currentUsername != null}">
+        Вы вошли как <strong th:text="${currentUsername}">user</strong>
+        <span th:if="${isAdmin}"> (роль ROLE_ADMIN)</span>
+        <span th:if="${!isAdmin}"> (роль ROLE_USER)</span>.
+    </p>
+    <div style="text-align: center; margin-top: 30px;">
+        <a class="btn" th:href="@{/books}">← Вернуться к каталогу</a>
+    </div>
+</div>
+</body>
+</html>

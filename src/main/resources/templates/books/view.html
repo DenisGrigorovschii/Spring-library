@@ -18,7 +18,8 @@
     </div>
     <div style="text-align: center; margin-top: 30px;">
         <a class="btn" th:href="@{/books}">← Назад к списку</a>
-        <a class="btn" th:href="@{'/books/' + ${book.id} + '/edit'}" style="margin-left: 15px;">✏️ Редактировать</a>
+        <a th:if="${isAdmin}"
+           class="btn" th:href="@{'/books/' + ${book.id} + '/edit'}" style="margin-left: 15px;">✏️ Редактировать</a>
     </div>
 </div>
 </body>

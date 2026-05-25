@@ -10,34 +10,82 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
-@Configuration
+/**
+ * Класс для инициализации начальных данных в базе данных
+ * 
+ * Этот класс автоматически выполняется при запуске приложения
+ * и заполняет базу данных тестовыми данными:
+ * - создаёт тестового пользователя (логин: "user", пароль: "password")
+ * - добавляет 10 тестовых книг (если их ещё нет в базе)
+ * 
+ * Используется для удобства разработки и демонстрации приложения.
+ * В реальном приложении такие данные обычно добавляются через админ-панель.
+ */
+@Configuration  // Указывает Spring, что это класс конфигурации
 public class DataInitializer {
 
-    @Bean
-    @Transactional
-    public CommandLineRunner initData(BookRepository bookRepository, UserRepository userRepository, PasswordEncoder encoder) {
+    /**
+     * Метод инициализации данных при запуске приложения
+     * 
+     * CommandLineRunner - интерфейс Spring Boot, который позволяет
+     * выполнить код после полной загрузки приложения.
+     * 
+     * @Transactional - все операции выполняются в одной транзакции.
+     * Если что-то пойдёт не так, все изменения откатятся (rollback).
+     * 
+     * @param bookRepository репозиторий для работы с книгами
+     * @param userRepository репозиторий для работы с пользователями
+     * @param encoder кодировщик паролей для шифрования
+     * @return CommandLineRunner, который будет выполнен при запуске
+     */
+    @Bean  // Указывает Spring создать этот компонент
+    @Transactional  // Все операции в одной транзакции БД
+    public CommandLineRunner initData(BookRepository bookRepository, 
+                                      UserRepository userRepository, 
+                                      PasswordEncoder encoder) {
+        // Возвращаем лямбда-выражение, которое будет выполнено при запуске
         return args -> {
             try {
+                // ========== ЗАДЕРЖКА ДЛЯ ИНИЦИАЛИЗАЦИИ БД ==========
+                // Ждём 3 секунды, чтобы база данных успела полностью инициализироваться
+                // Это особенно важно при первом запуске, когда создаются таблицы
                 Thread.sleep(3000);
                 
-                // Создание пользователя
+                // ========== СОЗДАНИЕ ТЕСТОВЫХ ПОЛЬЗОВАТЕЛЕЙ ==========
                 try {
+                    // Обычный пользователь: логин "user", пароль "password", роль ROLE_USER.
+                    // Имеет право только просматривать каталог и карточки книг.
                     if (userRepository.findByUsername("user").isEmpty()) {
                         userRepository.save(new User("user", encoder.encode("password"), "ROLE_USER"));
-                        System.out.println("Пользователь 'user' создан");
+                        System.out.println("Пользователь 'user' создан (роль ROLE_USER)");
+                    } else {
+                        System.out.println("Пользователь 'user' уже существует");
+                    }
+
+                    // Администратор: логин "admin", пароль "admin", роль ROLE_ADMIN.
+                    // Может всё: создавать, редактировать и удалять книги.
+                    if (userRepository.findByUsername("admin").isEmpty()) {
+                        userRepository.save(new User("admin", encoder.encode("admin"), "ROLE_ADMIN"));
+                        System.out.println("Пользователь 'admin' создан (роль ROLE_ADMIN)");
+                    } else {
+                        System.out.println("Пользователь 'admin' уже существует");
                     }
                 } catch (Exception e) {
-                    System.err.println("Ошибка при создании пользователя: " + e.getMessage());
+                    System.err.println("Ошибка при создании пользователей: " + e.getMessage());
                     e.printStackTrace();
                 }
                 
-                // Создание тестовых книг (10 штук)
+                // ========== СОЗДАНИЕ ТЕСТОВЫХ КНИГ ==========
                 try {
+                    // Подсчитываем текущее количество книг в базе данных
                     long count = bookRepository.count();
                     System.out.println("Текущее количество книг в БД: " + count);
                     
+                    // Добавляем книги только если их меньше 10
+                    // Это предотвращает дублирование при повторных запусках приложения
                     if (count < 10) {
-                        // Список всех 10 книг
+                        // ========== МАССИВ ТЕСТОВЫХ КНИГ ==========
+                        // Создаём массив из 10 книг с разными жанрами и авторами
                         Book[] books = {
                             new Book("Тени над Арктуром", "Владислав Кравец", "Фантастика", 2020, "В отдалённой научной станции на планете Арктур учёные находят артефакт древней цивилизации. Но с его пробуждением начинают исчезать люди."),
                             new Book("Песнь о стеклянных башнях", "Алина Рубан", "Фантастика", 2021, "В будущем мегаполисе девушка-программист обнаруживает забытый «код сочувствия». Этот код способен вернуть людям чувства."),
@@ -51,26 +99,38 @@ public class DataInitializer {
                             new Book("Преступление и наказание", "Фёдор Достоевский", "Классика", 1866, "Психологический роман о студенте Раскольникове, который решает убить старуху-процентщицу ради идеи.")
                         };
                         
-                        // Добавляем только недостающие книги
-                        int added = 0;
+                        // ========== ДОБАВЛЕНИЕ КНИГ В БАЗУ ДАННЫХ ==========
+                        // Добавляем только недостающие книги (начиная с индекса count)
+                        int added = 0;  // Счётчик добавленных книг
+                        
+                        // Цикл от текущего количества книг до 10
+                        // Например, если в БД уже 3 книги, добавим книги с индексами 3, 4, 5, ..., 9
                         for (int i = (int)count; i < 10 && i < books.length; i++) {
                             try {
+                                // Сохраняем книгу в базу данных
                                 bookRepository.save(books[i]);
-                                added++;
+                                added++;  // Увеличиваем счётчик
                                 System.out.println("Добавлена книга: " + books[i].getTitle());
                             } catch (Exception ex) {
+                                // Если не удалось добавить конкретную книгу, выводим ошибку
+                                // но продолжаем добавлять остальные
                                 System.err.println("Ошибка при добавлении книги " + books[i].getTitle() + ": " + ex.getMessage());
                             }
                         }
+                        
+                        // Выводим итоговую информацию
                         System.out.println("Всего добавлено книг: " + added);
                     } else {
+                        // Если книг уже достаточно, просто выводим сообщение
                         System.out.println("В базе уже есть 10 или больше книг");
                     }
                 } catch (Exception e) {
+                    // Если произошла ошибка при работе с книгами, выводим её
                     System.err.println("Ошибка при создании книг: " + e.getMessage());
                     e.printStackTrace();
                 }
             } catch (InterruptedException e) {
+                // Если поток был прерван во время ожидания, восстанавливаем флаг прерывания
                 Thread.currentThread().interrupt();
             }
         };

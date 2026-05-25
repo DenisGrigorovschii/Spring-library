@@ -12,7 +12,16 @@
         <h1>📚 Онлайн библиотека</h1>
         <div class="auth-links">
             <span class="book-count">📖 Всего книг: <strong th:text="${totalBooks}">0</strong></span>
-            <a th:href="@{/logout}">Выйти</a>
+            <span class="book-count" th:if="${currentUsername != null}">
+                👤 <strong th:text="${currentUsername}">user</strong>
+                <span th:if="${isAdmin}"> (админ)</span>
+                <span th:if="${!isAdmin}"> (пользователь)</span>
+            </span>
+            <a th:if="${isAdmin}" th:href="@{/admin/users}">👥 Пользователи</a>
+            <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="action-btn delete" style="padding:10px 20px;">Выйти</button>
+            </form>
         </div>
     </div>
     
@@ -46,7 +55,7 @@
         </form>
     </div>
     
-    <div style="text-align: center; margin: 30px 0;">
+    <div style="text-align: center; margin: 30px 0;" th:if="${isAdmin}">
         <a class="btn" th:href="@{/books/new}">➕ Добавить новую книгу</a>
     </div>
     
@@ -69,7 +78,8 @@
         <div class="empty-icon">📚</div>
         <h2 th:text="${searchQuery != null || selectedGenre != null || selectedYear != null ? 'Ничего не найдено' : 'Библиотека пуста'}"></h2>
         <p th:text="${searchQuery != null || selectedGenre != null || selectedYear != null ? 'Попробуйте изменить параметры поиска или фильтра' : 'Добавьте первую книгу в вашу библиотеку!'}"></p>
-        <a th:if="${searchQuery == null && selectedGenre == null && selectedYear == null}" class="btn" th:href="@{/books/new}">➕ Добавить книгу</a>
+        <a th:if="${isAdmin and searchQuery == null and selectedGenre == null and selectedYear == null}"
+           class="btn" th:href="@{/books/new}">➕ Добавить книгу</a>
     </div>
     
     <div th:if="${!#lists.isEmpty(books)}" class="books-grid">
@@ -99,8 +109,10 @@
             </div>
             <div class="book-card-actions">
                 <a th:href="@{'/books/' + ${book.id}}" class="action-btn view">👁 Просмотр</a>
-                <a th:href="@{'/books/' + ${book.id} + '/edit'}" class="action-btn edit">✏️ Редактировать</a>
-                <form th:action="@{'/books/' + ${book.id} + '/delete'}" method="post" style="display:inline">
+                <a th:if="${isAdmin}"
+                   th:href="@{'/books/' + ${book.id} + '/edit'}" class="action-btn edit">✏️ Редактировать</a>
+                <form th:if="${isAdmin}"
+                      th:action="@{'/books/' + ${book.id} + '/delete'}" method="post" style="display:inline">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                     <button type="submit" class="action-btn delete" onclick="return confirm('Вы уверены, что хотите удалить эту книгу?')">🗑️ Удалить</button>
                 </form>
